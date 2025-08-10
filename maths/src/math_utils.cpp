@@ -2,13 +2,22 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
-
+/**
+ * @namespace MathUtils
+ * @brief Namespace for mathematical utilities
+ * no class require
+ */
 namespace MathUtils {
     
     double power(double base, double exponent) {
         return std::pow(base, exponent);
     }
     
+    /*
+    * @brief Calculates the square root of a number
+    * @param number The number to calculate the square root of
+    * @return The square root of the number
+    */
     double squareRoot(double number) {
         return std::sqrt(number);
     }
