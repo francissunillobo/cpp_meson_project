@@ -5,6 +5,7 @@
 /**
  * @namespace MathUtils
  * @brief Namespace for mathematical utilities
+ * no class require
  */
 namespace MathUtils {
     
