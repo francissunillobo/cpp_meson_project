@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runtime
-      # Uncomment to specify platform  
+      # Uncomment to specify platform
       # platform: linux/amd64  # or linux/arm64
     command: ./release/cpp_meson_demo
 
@@ -46,7 +46,7 @@ services:
       platform: linux/amd64
     command: ./release/cpp_meson_demo
 
-  # ARM64 specific services  
+  # ARM64 specific services
   app-arm64:
     build:
       context: .
