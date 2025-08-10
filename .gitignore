@@ -1,0 +1,35 @@
+# Meson build directories
+build/
+
+
+# Compiled binaries
+*.exe
+*.out
+cpp_meson_demo
+
+# Debug files
+*.pdb
+*.ilk
+
+# Test output files
+test_output.txt
+
+# IDE files
+.vscode/
+.vs/
+*.user
+*.suo
+*.sln
+*.vcxproj*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Log files
+*.log

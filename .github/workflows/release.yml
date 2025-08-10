@@ -1,0 +1,70 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., v1.0.0)"
+        required: true
+        default: "v1.0.0"
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name || github.event.inputs.version }}
+          release_name: Release ${{ github.ref_name || github.event.inputs.version }}
+          draft: false
+          prerelease: false
+
+  build-and-upload:
+    needs: create-release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install Meson and Ninja
+        run: |
+          python -m pip install --upgrade pip
+          pip install meson ninja
+
+      - name: Setup MSVC
+        uses: microsoft/setup-msbuild@v1.3
+
+      - name: Configure and Build Release
+        run: |
+          meson setup build/release --buildtype=release
+          meson compile -C build/release
+
+      - name: Test Release Build
+        run: |
+          cd build/release
+          .\cpp_meson_demo.exe
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: build/release/cpp_meson_demo.exe
+          asset_name: cpp_meson_demo-windows-x64.exe
+          asset_content_type: application/octet-stream
