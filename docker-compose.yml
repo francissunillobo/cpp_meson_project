@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  # Development environment with source mounted
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+      # Uncomment to specify platform
+      # platform: linux/amd64  # or linux/arm64
+    volumes:
+      - .:/app
+      - build_cache:/app/build
+    working_dir: /app
+    command: bash
+    stdin_open: true
+    tty: true
+
+  # Production build
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      # Uncomment to specify platform  
+      # platform: linux/amd64  # or linux/arm64
+    command: ./release/cpp_meson_demo
+
+  # Debug version
+  debug:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      # Uncomment to specify platform
+      # platform: linux/amd64  # or linux/arm64
+    command: ./debug/cpp_meson_demo
+
+  # AMD64 specific services
+  app-amd64:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      platform: linux/amd64
+    command: ./release/cpp_meson_demo
+
+  # ARM64 specific services  
+  app-arm64:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      platform: linux/arm64
+    command: ./release/cpp_meson_demo
+
+volumes:
+  build_cache:

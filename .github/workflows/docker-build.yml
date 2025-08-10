@@ -1,0 +1,93 @@
+name: Docker Build and Test
+
+on:
+  push:
+    branches: [main, master, develop, updatecode1]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        build_type: [debug, release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: builder
+          tags: cpp-meson-project:${{ matrix.build_type }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test build in container
+        run: |
+          docker run --rm cpp-meson-project:${{ matrix.build_type }} \
+            sh -c "meson compile -C build/${{ matrix.build_type }} && ./build/${{ matrix.build_type }}/cpp_meson_demo"
+
+      - name: Build runtime image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          target: runtime
+          tags: cpp-meson-project:${{ matrix.build_type }}-runtime
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test runtime image
+        run: |
+          if [ "${{ matrix.build_type }}" = "debug" ]; then
+            docker run --rm cpp-meson-project:${{ matrix.build_type }}-runtime ./debug/cpp_meson_demo
+          else
+            docker run --rm cpp-meson-project:${{ matrix.build_type }}-runtime ./release/cpp_meson_demo
+          fi
+
+      - name: Export artifacts
+        if: matrix.build_type == 'release'
+        run: |
+          # Create container and copy executable
+          docker create --name temp-container cpp-meson-project:release-runtime
+          docker cp temp-container:/app/release/cpp_meson_demo ./cpp_meson_demo-linux
+          docker rm temp-container
+
+      - name: Upload Linux executable
+        if: matrix.build_type == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp_meson_demo-linux
+          path: cpp_meson_demo-linux
+          retention-days: 30
+
+  docker-security-scan:
+    runs-on: ubuntu-latest
+    needs: docker-build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build image for scanning
+        run: |
+          docker build -t cpp-meson-project:scan .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: cpp-meson-project:scan
+          format: sarif
+          output: trivy-results.sarif
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif

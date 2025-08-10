@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Build directories
+build/
+builddir/
+builddir-debug/
+builddir-release/
+
+# Documentation
+README.md
+BUILD_INSTRUCTIONS.md
+*.md
+
+# IDE files
+.vscode/
+.vs/
+*.user
+*.suo
+
+# Temporary files
+*.tmp
+*.temp
+*~
+*.log
+
+# Test output
+test_output.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# GitHub Actions
+.github/
+
+# Docker files themselves
+Dockerfile*
+.dockerignore
+docker-compose*.yml
